@@ -1,0 +1,67 @@
+version: 2.1
+orbs:
+  # orbs for the services that we will be using "aws, node, eb"
+  node: circleci/node@5.0.2
+  aws-cli: circleci/aws-cli@1.3.1
+  eb: circleci/aws-elastic-beanstalk@2.0.1
+jobs:
+  build:
+  # this is the docker image that we will use
+    docker:
+      - image: "cimg/base:stable"
+    steps:
+      # doing all the installation and setups that are needed
+      - node/install
+      - node/install-yarn
+      - checkout
+      - aws-cli/setup
+      - eb/setup
+      # job for installing front-end packages
+      - run:
+          name: Front-End Install
+          command: |
+            npm run frontend:install
+      # job for installing back-end packages
+      - run:
+          name: Back-End Install
+          command: |
+            npm run backend:install
+      # job for building front-end project
+      - run:
+          name: Front-End Build
+          command: |
+            npm run frontend:build
+      # job for building back-end project
+      - run:
+          name: Back-End Build
+          command: |
+            npm run backend:build
+      # job for testing front-end project
+      - run:
+          name: Front-End test
+          command: |
+            npm run frontend:test
+      # job for testing back-end project
+      - run:
+          name: Back-End test
+          command: |
+            npm run backend:test
+      # job for deploying front-end project
+      - run:
+          name: Deploy frontend
+          command: |
+            npm run frontend:deploy
+      # job for deploying back-end project
+      - run:
+          name: Deploy backend
+          command: |
+            npm run backend:deploy
+workflows:
+  udagram-app:
+    jobs:
+    # tigger the job when new update happens in the main branch
+      - build:  
+          filters:
+            branches:
+               only:                
+                  - main
